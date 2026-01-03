@@ -2,7 +2,17 @@
 
 @section('content')
     <h2 class="text-2xl font-semibold mb-4">ユーザー編集</h2>
+<div class="mt-6 flex gap-4">
+    <a href="{{ route('admin.users.karte.edit', $user) }}"
+       class="px-4 py-2 bg-gray-700 text-white rounded">
+        カルテを見る
+    </a>
 
+    <a href="{{ route('admin.users.visits.index', $user) }}"
+       class="px-4 py-2 bg-gray-700 text-white rounded">
+        来店履歴
+    </a>
+</div>
     <form action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')

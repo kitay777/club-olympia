@@ -34,6 +34,29 @@ use App\Http\Controllers\BoxGameController;
 use App\Http\Controllers\Admin\AdminCastController;
 use App\Http\Controllers\Admin\AdminBoxGameController;
 use App\Http\Controllers\Admin\AdminBoxGameResultController;
+use App\Http\Controllers\AdminUserKarteController;
+use App\Http\Controllers\AdminUserVisitController;
+
+Route::middleware(['auth', 'admin'])
+    ->prefix('admin/users/{user}')
+    ->group(function () {
+
+        Route::get('/karte', [AdminUserKarteController::class, 'edit'])
+            ->name('admin.users.karte.edit');
+
+        Route::put('/karte', [AdminUserKarteController::class, 'update'])
+            ->name('admin.users.karte.update');
+
+        Route::get('/visits', [AdminUserVisitController::class, 'index'])
+            ->name('admin.users.visits.index');
+
+        Route::post('/visits', [AdminUserVisitController::class, 'store'])
+            ->name('admin.users.visits.store');
+        Route::delete('/visits/{visit}',
+            [AdminUserVisitController::class, 'destroy']
+        )->name('admin.users.visits.destroy');
+    });
+
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->group(function () {

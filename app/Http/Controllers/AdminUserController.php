@@ -5,6 +5,10 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Cast; // Cast モデルのインポート
 use Intervention\Image\Facades\Image;
+use App\Models\UserProfile;
+use App\Models\UserVisit;
+use Illuminate\Support\Facades\DB;
+
 
 class AdminUserController extends Controller
 {
@@ -18,16 +22,27 @@ class AdminUserController extends Controller
     }
 
     // ユーザー編集画面
-    public function edit(User $user)
-    {
-        // ユーザーがキャストの場合、関連するキャストデータも取得
-        $cast = null;
-        if ($user->is_cast == 1) {
-            $cast = Cast::where('user_id', $user->id)->first(); // 関連するキャスト情報を取得
-        }
-
-        return view('admin.users.edit', compact('user', 'cast'));
+public function edit(User $user)
+{
+    $cast = null;
+    if ($user->is_cast == 1) {
+        $cast = Cast::where('user_id', $user->id)->first();
     }
+
+    // ★ 追加：顧客プロフィール & 来店履歴
+    $profile = UserProfile::where('user_id', $user->id)->first();
+    $visits  = UserVisit::where('user_id', $user->id)
+                ->orderByDesc('visit_date')
+                ->get();
+
+    return view('admin.users.edit', compact(
+        'user',
+        'cast',
+        'profile',
+        'visits'
+    ));
+}
+
 
     // ユーザー情報更新
 public function update(Request $request, User $user)
@@ -108,7 +123,32 @@ public function update(Request $request, User $user)
         // 更新または新規保存
         $cast->save();
     }
+    // ===== 顧客プロフィール（1対1）保存 =====
+    UserProfile::updateOrCreate(
+        ['user_id' => $user->id],
+        [
+            'nickname'   => $request->input('nickname'),
+            'age'        => $request->input('age'),
+            'blood_type' => $request->input('blood_type'),
+            'birthday'   => $request->input('birthday'),
+            'residence'  => $request->input('residence'),
+            'referrer'   => $request->input('referrer'),
+            'features'   => $request->input('features'),
+            'memo'       => $request->input('memo'),
+        ]
+    );
 
+    // ===== 来店履歴（追加のみ） =====
+    if ($request->filled('visit_date')) {
+        UserVisit::create([
+            'user_id'    => $user->id,
+            'visit_date' => $request->input('visit_date'),
+            'amount'     => $request->input('amount'),
+            'cast_name'  => $request->input('visit_cast'),
+            'time_slot'  => $request->input('time_slot'),
+            'memo'       => $request->input('visit_memo'),
+        ]);
+    }
     return redirect()->route('admin.users.index')->with('success', 'ユーザー情報とキャスト情報が更新されました');
 }
 

@@ -61,5 +61,13 @@ class User extends Authenticatable
             ->withPivot(['acquired_at', 'used_at'])
             ->withTimestamps();
     }
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class);
+    }
 
+    public function visits()
+    {
+        return $this->hasMany(UserVisit::class);
+    }
 }
